@@ -16,14 +16,18 @@ class WideInt {
 public:
     WideInt() = default;
     WideInt(std::string);
+    WideInt(const WideInt&) = default;
+
     bool operator<(const WideInt&);
     WideInt operator+(const WideInt&) const;
     WideInt operator-(const WideInt&) const;
     WideInt operator-();
+
+    // TODO: Replace `print()` with redirecting to stream
     void print();
+    friend std::ostream& operator<<(std::ostream&, const WideInt&);
 };
 
-// TODO: constexpr?
-WideInt operator""_w(const char *str) {
+constexpr WideInt operator""_w(const char *str) {
     return WideInt(str);
 }
