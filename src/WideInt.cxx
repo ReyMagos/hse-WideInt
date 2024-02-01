@@ -1,85 +1,127 @@
 #include <stdexcept>
+#include <cmath>
+#include <iostream>
+#include <iomanip>
 
 #include "../include/WideInt.h"
 
-// FIXME: I'm sorry
-#define min(a, b) ((a) < (b) ? (a) : (b))
 
+/*
+ *       start       point        end
+ *         |           |           |
+ *         123456789012.345678901234
+ *   |_______||_______| |_______||_______|
+ *       1        0        -1       -2
+ *
+ *      start end                point
+ *          | |                    |
+ *          12300000000000000000000.0
+ *      |_______|
+ *          2
+ *
+ *      point              start end
+ *        |                    | |
+ *       0.00000000000000000000123
+ *                           |_______|
+ *                              -3
+ */
 
-WideInt::WideInt() {
-    sign = 0;
-    point = 0;
-    length = 0;
-    parts = std::vector<uint32_t>(1, 0);
-}
-
-//       start       point        end
-//         |           |           |
-//         123456789012.345678901234
-//   |_______||_______| |_______||_______|
-//       2        1         -1       -2
 
 WideInt::WideInt(std::string num) {
-    uint32_t start = 0, end = 0;
-    bool start_found = false, point_found = false;
+    bool is_zero = true;
+
+    // Actually `start` and `end` shows index of the first and the last
+    // non-zero digit in number respectively
+    int start, end;
+    int point = num.size();
+
     sign = num[0] == '-';
 
     for (int i = sign; i < num.size(); ++i) {
         char c = num[i];
 
-        if (c == '0' && start_found && !point_found) {
-            end = i;
-        } else if (c > '0' && c <= '9') {
-            if (!start_found) {
+        if (c > '0' && c <= '9') {
+            if (is_zero) {
                 start = i;
-                start_found = true;
+                is_zero = false;
             }
             end = i;
         } else if (c == '.') {
-            point = i;
-            point_found = true;
-        } else {
+            // FIXME: Point will be overwritten if number has several of them
+             point = i;
+        } else if (c != '0') {
             throw std::runtime_error("Unexpected symbol");
         }
     }
 
+    if (is_zero) {
+        return;
+    }
 
-    parts = vector<uint32_t>(
-            (std::max(point - start, 1) + (PART_SIZE - 1)) / PART_SIZE +  // integer part
-            (std::max(end - point, 1) + (PART_SIZE - 1)) / PART_SIZE,     // float part
-            0
-    );
+    // TODO: simplify and describe this
+    base d = 1;
+    if (point < start) {
+        exp = -((end - point) + (PART_SIZE - 1)) / PART_SIZE;
+    } else if (point > end) {
+        exp = (point - end - 1) / PART_SIZE;
+        end += (point - end - 1) % PART_SIZE;
+    } else  {
+        exp = -((end - point) + (PART_SIZE - 1)) / PART_SIZE;
+        i = (end - point) % PART_SIZE;
+        d = pow(10, PART_SIZE - (end - point) % PART_SIZE);
+    }
+
+    // FIXME: `end - start + 1` can count point symbol
+    // FIXME: `max(..., 2)` handles exceptional case when number is small enough to be contained
+    //         in one part but shouldn't due to floating point (like 1.25)
+    parts = std::vector<base>( std::max(((end - start + 1) + (PART_SIZE - 1)) / PART_SIZE, 2), 0 );
+
+    for (int i = end; i >= start; --i) {
+        // TODO: Workaround to remove extra check from loop
+        if (num[i] == '.')
+            continue;
+
+        parts[(end - i) / PART_SIZE] += (num[i] - '0') * d;
+        d *= 10;
+        if (d >= PART_MAX)
+            d = 1;
+    }
 }
 
-// TODO: remove trailing and leading zeros (if exists)
-WideInt::WideInt(std::string num) {
-    const size_t num_len = num.size();
-    // Could be one part more due to sign and dot symbols
-    const size_t parts_len = (num_len + PART_SIZE - 1) / PART_SIZE;
-    sign = num[0] == '-';
-    length = num_len - sign;
-    parts = std::vector<uint32_t>(parts_len, 0);
+void WideInt::print() {
+    if (sign) {
+        std::cout << '-';
+    }
 
-    uint32_t order = 1;
-    for (int i = 0; i < parts_len; ++i) {
-        for (int j = 0; j < min(PART_SIZE, num_len - i * 9); ++j) {
-            if (num[num_len - i * 9 - j] == '.') {
-                length -= 1;
-                point = i * 9 + j + 1;
-                continue;
-            }
+    int point = parts.size() + exp;
 
-            parts[i] += num[num_len - i * 9 - j] * order;
-            order *= 10;
+    if (point <= 0) {
+        std::cout << "0.";
+
+        for (int i = 0; i < point; ++i) {
+            std::cout << std::setfill('0') << std::setw(9) << 0;
         }
     }
 
-    if (parts.back() == 0) {
-        parts.pop_back();
-    }
-}
+    for (int i = 1; i <= parts.size(); ++i) {
+        if (i != 1) {
+            std::cout << std::setfill('0') << std::setw(9);
+        }
+        std::cout << parts[parts.size() - i];
 
-int8_t compare(const WideInt &other) {
+        if (point == i)  {
+            std::cout << '.';
+        }
+    }
+
+    for (int i = 0; i < exp; ++i) {
+        std::cout << std::setfill('0') << std::setw(9) << 0;
+    }
+
+    std::cout << std::endl;
+};
+
+int8_t WideInt::compare(const WideInt &other) {
     if (sign < other.sign) {
         return 1;
     } else if (sign > other.sign) {
@@ -87,32 +129,20 @@ int8_t compare(const WideInt &other) {
     }
 
     int8_t abs_cmp = 0;
-    if (length - point > other.length - other.point) {
-        abs_cmp = 1;
-    } else if (length - point < other.length - other.point) {
-        abs_cmp = -1;
-    } else {
-        for (int i = 0; i <; ++i) {
-
-        }
-    }
-}
-
-WideInt WideInt::operator+(const WideInt &other) const {
-    WideInt r;
-
-    uint32_t rem = 0;
-    for (int i = 0; i; ++i) {
-        uint32_t tmp = other.parts[i] + () + rem;
-        r.parts[i] = tmp % PART_MAX;
-        rem = tmp / PART_MAX;
-    }
-
-//    if ()
-
-    return r;
 }
 
 WideInt WideInt::operator-(const WideInt &other) const {
 
+}
+
+// TODO: Check is it the right way to do
+WideInt WideInt::operator-() {
+    sign = !sign;
+    return *this;
+}
+
+int main(void) {
+//    WideInt a = -0.10234235124000000000_w;
+    WideInt a = 1.25_w;
+    a.print();
 }

@@ -1,8 +1,5 @@
 *.exe
 *.o
 .vscode
-tmp.c
-Strings/task6.c
-test.txt
 cmake-build-debug/
 .idea/
