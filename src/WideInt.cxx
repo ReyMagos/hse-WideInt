@@ -66,8 +66,6 @@ WideInt::WideInt(const std::string &num) {
             offset = 1;
         ++j;
     }
-
-    int test = 0;
 }
 
 void WideInt::print() {
@@ -84,14 +82,33 @@ void WideInt::print() {
     cout << endl;
 };
 
-int8_t WideInt::compare(const WideInt &other) {
+int8_t WideInt::compare(const WideInt &other) const {
     if (sign < other.sign) {
         return 1;
     } else if (sign > other.sign) {
         return -1;
     }
 
-    int8_t abs_cmp = 0;
+    int head = parts.size() + exp;
+    int other_head = other.parts.size() + other.exp;
+    if (head > other_head) {
+        return 1;
+    } else if (head < other_head) {
+        return -1;
+    }
+
+    for (int i = 0; i < std::max(parts.size(), other.parts.size()); ++i) {
+        base part = (i < parts.size() ? parts[parts.size() - 1 - i] : 0);
+        base other_part = (i < other.parts.size() ? other.parts[other.parts.size() - 1 - i] : 0);
+
+        if (part > other_part) {
+            return 1;
+        } else if (part < other_part) {
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 WideInt WideInt::operator-() {
@@ -102,5 +119,6 @@ WideInt WideInt::operator-() {
 
 int main(void) {
     WideInt a = 0.01_w;
-    a.print();
+    WideInt b = 0.02_w;
+    std::cout << (a >= b) << std::endl;
 }
