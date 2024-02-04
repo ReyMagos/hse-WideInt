@@ -15,7 +15,7 @@ class WideInt {
 
 public:
     WideInt() = default;
-    WideInt(std::string);
+    WideInt(const std::string&);
     WideInt(const WideInt&) = default;
 
     bool operator<(const WideInt&);
