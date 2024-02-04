@@ -7,28 +7,7 @@
 #include "../include/WideInt.h"
 
 
-/*
- *       start       point        end
- *         |           |           |
- *         123456789012.345678901234
- *   |_______||_______| |_______||_______|
- *       1        0        -1       -2
- *
- *      start end                point
- *          | |                    |
- *          12300000000000000000000.0
- *      |_______|
- *          2
- *
- *      point              start end
- *        |                    | |
- *       0.00000000000000000000123
- *                           |_______|
- *                              -3
- */
-
-
-WideInt::WideInt(std::string num) {
+WideInt::WideInt(const std::string &num) {
     bool is_zero = true;
 
     // Actually `start` and `end` show index of the first and the last
@@ -56,38 +35,39 @@ WideInt::WideInt(std::string num) {
     }
 
     if (is_zero) {
+        exp = 0;
         return;
     }
 
-    // TODO: simplify and describe this
-    base d = 1;
-    if (point < start) {
-        // 0.00...00123
-        exp = -((end - point) + (PART_SIZE - 1)) / PART_SIZE;
-    } else if (point > end) {
-        // 12300...00.0
-        exp = (point - end - 1) / PART_SIZE;
-        end += (point - end - 1) % PART_SIZE;
+    // We move a point until number turns into the smallest integer
+    // TODO: I believe it can be done much simpler
+    if (point > end) {
+        exp = -((end - point + 1) / PART_SIZE);
+        point += -exp * PART_SIZE;
     } else {
-        exp = -((end - point) + (PART_SIZE - 1)) / PART_SIZE;
-        d = pow(10, PART_SIZE - (end - point) % PART_SIZE);
+        exp = -(((end - point) + (PART_SIZE - 1)) / PART_SIZE);
+        point += -exp * PART_SIZE + 1;
     }
+    base offset = std::pow(10, point - end - 1);
+    int j = point - end - 1;
 
-    // FIXME: `end - start + 1` may count point symbol
-    // FIXME: `max(..., 2)` handles exceptional case when number is small enough to be contained
-    //         in one part but shouldn't due to floating point (like `1.25`)
-    parts = std::vector<base>(std::max(((end - start + 1) + (PART_SIZE - 1)) / PART_SIZE, 2), 0);
+    // FIXME: `point - start` may count point symbol
+    parts = std::vector<base>(((point - start) + (PART_SIZE - 1)) / PART_SIZE, 0);
 
+    // TODO: Point symbol makes impossible to use `i` as digit counter
+    //       and adds an extra `if` in loop. Workaround needed
     for (int i = end; i >= start; --i) {
-        // TODO: Workaround to remove extra check from loop
         if (num[i] == '.')
             continue;
 
-        parts[(end - i) / PART_SIZE] += (num[i] - '0') * d;
-        d *= 10;
-        if (d >= PART_MAX)
-            d = 1;
+        parts[j / PART_SIZE] += (num[i] - '0') * offset;
+        offset *= 10;
+        if (offset >= PART_MAX)
+            offset = 1;
+        ++j;
     }
+
+    int test = 0;
 }
 
 void WideInt::print() {
@@ -97,28 +77,8 @@ void WideInt::print() {
         cout << '-';
     }
 
-    int point = parts.size() + exp;
-
-    if (point <= 0) {
-        cout << "0.";
-        for (int i = 0; i < point; ++i) {
-            cout << setfill('0') << setw(9) << 0;
-        }
-    }
-
-    for (int i = 1; i <= parts.size(); ++i) {
-        if (i != 1) {
-            cout << setfill('0') << setw(9);
-        }
-        cout << parts[parts.size() - i];
-
-        if (point == i) {
-            cout << '.';
-        }
-    }
-
-    for (int i = 0; i < exp; ++i) {
-        cout << setfill('0') << setw(9) << 0;
+    for (int i = 0; i < parts.size(); ++i) {
+        cout << setfill('0') << setw(9) << parts[i];
     }
 
     cout << endl;
@@ -134,10 +94,6 @@ int8_t WideInt::compare(const WideInt &other) {
     int8_t abs_cmp = 0;
 }
 
-WideInt WideInt::operator-(const WideInt &other) const {
-
-}
-
 WideInt WideInt::operator-() {
     WideInt w(*this);
     w.sign = !w.sign;
@@ -145,7 +101,6 @@ WideInt WideInt::operator-() {
 }
 
 int main(void) {
-//    WideInt a = -0.10234235124000000000_w;
-    WideInt a = -12_w;
+    WideInt a = 0.01_w;
     a.print();
 }

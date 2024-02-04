@@ -1,5 +1,5 @@
 ﻿cmake_minimum_required (VERSION 3.8)
-project(Hello)
+project(WideInt)
 
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_CXX_STANDARD 20)
