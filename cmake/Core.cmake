@@ -1,7 +1,7 @@
 function(as_library)
     file(GLOB SOURCE_LIB src/*.cpp)
     add_library(${PROJECT_NAME} STATIC ${SOURCE_LIB})
-    set(${PROJECT_NAME}_INCLUDE_DIRS ../include
+    set(${PROJECT_NAME}_INCLUDE_DIRS include
             CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
     include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
 endfunction()

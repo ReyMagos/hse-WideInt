@@ -1,27 +1,27 @@
-﻿cmake_minimum_required (VERSION 3.8)
+﻿cmake_minimum_required(VERSION 3.28)
 project(WideInt)
 
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmodules")
 
 include(cmake/Core.cmake)
 
-#add_custom_target(doc) # DEPENDS docProjA docProjB) Note: with CMake 3.X the DEPENDS would work
+as_library()
+target_sources(WideInt
+    PUBLIC
+    FILE_SET modules TYPE CXX_MODULES FILES modules/WideInt.cppm
+)
+with_test(WideInt gtest_main)
 
 # Google tests
-#enable_testing()
-#
-#include(FetchContent)
-#FetchContent_Declare(
-#        googletest
-#        URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-#)
+enable_testing()
+
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 #set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-#FetchContent_MakeAvailable(googletest)
-
-#as_library()
-#with_test(Hello gtest_main)
-
-add_executable(Hello src/WideInt.cxx include/WideInt.h)
+FetchContent_MakeAvailable(googletest)

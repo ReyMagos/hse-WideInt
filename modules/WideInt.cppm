@@ -1,12 +1,10 @@
-#include <cstdint>
-#include <string>
-#include <vector>
+module;
 
-using base = uint32_t;
-#define PART_SIZE 9
-#define PART_MAX 1000000000
+#include "WideInt.h"
 
-class WideInt {
+export module WideInt;
+
+export class WideInt {
     int8_t sign;
     int32_t exp;
     std::vector<base> parts;
@@ -42,6 +40,6 @@ public:
     friend std::ostream& operator<<(std::ostream&, const WideInt&);
 };
 
-constexpr WideInt operator""_w(const char *str) {
+export WideInt operator""_w(const char *str) {
     return WideInt(str);
 }
