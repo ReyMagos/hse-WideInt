@@ -69,19 +69,22 @@ WideInt::WideInt(const std::string &num) {
     }
 }
 
-void WideInt::print() {
-    using namespace std;
+std::ostream& operator<<(std::ostream& out, const WideInt& w) {
+    // Debug output
+    out << "[exp=" << exp << "]: ";
 
-    if (sign) {
-        cout << '-';
+    if (w.sign) {
+        out << '-';
     }
 
-    for (int i = 0; i < parts.size(); ++i) {
-        cout << setfill('0') << setw(9) << parts[i];
+    for (int i = 0; i < w.parts.size(); ++i) {
+        out << std::setfill('0') << std::setw(9) << w.parts[i];
+        if (i < w.parts.size() - 1)
+            out << '.';
     }
 
-    cout << endl;
-};
+    return out;
+}
 
 int8_t WideInt::compare(const WideInt &other) const {
     if (sign < other.sign) {
@@ -121,6 +124,49 @@ int8_t WideInt::compare(const WideInt &other) const {
     }
 
     return 0;
+}
+
+// TODO: `+` and `-` should refer to one function which will redirect
+//       to `sum` or `sub` respectively according by numbers' signs
+WideInt WideInt::operator+(const WideInt &other) const {
+    WideInt r;
+    r.sign = sign;
+
+    int msp = parts.size() + exp,
+        other_msp = other.parts.size() + other.exp;
+    int lsp = exp,
+        other_lsp = other.exp;
+    r.exp = std::min(lsp, other_lsp);
+
+    int zero_parts = 0;
+    base rem = 0;
+    for (int i = std::min(lsp, other_lsp); i <= std::max(msp, other_msp); ++i) {
+        base sum = rem;
+        if (i >= lsp && i < msp) {
+            sum += parts[i - exp];
+        }
+        if (i >= other_lsp && i < other_msp) {
+            sum += other.parts[i - other.exp];
+        }
+
+        rem = sum / PART_MAX;
+        sum %= PART_MAX;
+
+        if (sum != 0) {
+            for (; zero_parts > 0; --zero_parts) {
+                r.parts.push_back(0);
+            }
+            r.parts.push_back(sum);
+        } else {
+            if (r.parts.empty()) {
+                r.exp += 1;
+            } else {
+                zero_parts += 1;
+            }
+        }
+    }
+
+    return r;
 }
 
 WideInt WideInt::operator-() {

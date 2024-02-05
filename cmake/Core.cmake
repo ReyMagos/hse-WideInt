@@ -1,6 +1,6 @@
 function(as_library)
     file(GLOB SOURCE_LIB src/*.cpp)
-    add_library(${PROJECT_NAME} STATIC ${SOURCE_LIB})
+    add_library(${ARGN} STATIC ${SOURCE_LIB})
     set(${PROJECT_NAME}_INCLUDE_DIRS include
             CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
     include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
@@ -8,7 +8,7 @@ endfunction()
 
 function(as_executable)
     file(GLOB SOURCE_EXE src/*.cpp)
-    add_executable(${PROJECT_NAME} ${SOURCE_EXE})
+    add_executable(${ARGN} ${SOURCE_EXE})
 endfunction()
 
 function(with_test)
