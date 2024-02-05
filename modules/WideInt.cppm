@@ -35,8 +35,6 @@ public:
     WideInt operator-(const WideInt&) const;
     WideInt operator-();
 
-    // TODO: Replace `print()` with redirecting to stream
-    void print();
     friend std::ostream& operator<<(std::ostream&, const WideInt&);
 };
 
