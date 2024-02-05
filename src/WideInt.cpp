@@ -10,6 +10,7 @@ module;
 module WideInt;
 
 WideInt::WideInt(const std::string &num) {
+    sign = 0;
     bool is_zero = true;
 
     // Actually `start` and `end` show index of the first and the last
@@ -17,9 +18,7 @@ WideInt::WideInt(const std::string &num) {
     int start, end;
     int point = num.size();
 
-    sign = num[0] == '-';
-
-    for (int i = sign; i < num.size(); ++i) {
+    for (int i = 0; i < num.size(); ++i) {
         char c = num[i];
 
         if (c > '0' && c <= '9') {
@@ -91,6 +90,17 @@ int8_t WideInt::compare(const WideInt &other) const {
         return -1;
     }
 
+    bool is_zero = parts.empty();
+    bool other_is_zero = other.parts.empty();
+
+    if (is_zero && other_is_zero) {
+        return 0;
+    } else if (other_is_zero) {
+        return 1;
+    } else if (is_zero) {
+        return -1;
+    }
+
     int head = parts.size() + exp;
     int other_head = other.parts.size() + other.exp;
     if (head > other_head) {
@@ -115,6 +125,8 @@ int8_t WideInt::compare(const WideInt &other) const {
 
 WideInt WideInt::operator-() {
     WideInt w(*this);
-    w.sign = !w.sign;
+    if (!w.parts.empty()) {
+        w.sign = !w.sign;
+    }
     return w;
 }
