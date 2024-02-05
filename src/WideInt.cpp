@@ -1,11 +1,13 @@
+module;
+
 #include <stdexcept>
 #include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <format>
+#include "../modules/WideInt.h"
 
-#include "../include/WideInt.h"
-
+module WideInt;
 
 WideInt::WideInt(const std::string &num) {
     bool is_zero = true;
@@ -115,10 +117,4 @@ WideInt WideInt::operator-() {
     WideInt w(*this);
     w.sign = !w.sign;
     return w;
-}
-
-int main(void) {
-    WideInt a = 0.01_w;
-    WideInt b = 0.02_w;
-    std::cout << (a >= b) << std::endl;
 }
