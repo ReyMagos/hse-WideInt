@@ -5,7 +5,7 @@ module;
 #include <iostream>
 #include <iomanip>
 #include <format>
-#include "../modules/WideInt.h"
+#include "../modules/WideInt.hpp"
 
 module WideInt;
 
@@ -86,39 +86,39 @@ std::ostream& operator<<(std::ostream& out, const WideInt& w) {
     return out;
 }
 
-int8_t WideInt::compare(const WideInt &other) const {
-    if (sign < other.sign) {
+int8_t WideInt::compare(const WideInt& a, const WideInt &b) const {
+    if (a.sign < b.sign) {
         return 1;
-    } else if (sign > other.sign) {
+    } else if (a.sign > b.sign) {
         return -1;
     }
 
-    bool is_zero = parts.empty();
-    bool other_is_zero = other.parts.empty();
+    bool a_is_zero = a.parts.empty();
+    bool b_is_zero = b.parts.empty();
 
-    if (is_zero && other_is_zero) {
+    if (a_is_zero && b_is_zero) {
         return 0;
-    } else if (other_is_zero) {
+    } else if (b_is_zero) {
         return 1;
-    } else if (is_zero) {
+    } else if (a_is_zero) {
         return -1;
     }
 
-    int head = parts.size() + exp;
-    int other_head = other.parts.size() + other.exp;
-    if (head > other_head) {
+    int a_head = a.parts.size() + a.exp;
+    int b_head = b.parts.size() + b.exp;
+    if (a_head > b_head) {
         return 1;
-    } else if (head < other_head) {
+    } else if (a_head < b_head) {
         return -1;
     }
 
-    for (int i = 0; i < std::max(parts.size(), other.parts.size()); ++i) {
-        base part = (i < parts.size() ? parts[parts.size() - 1 - i] : 0);
-        base other_part = (i < other.parts.size() ? other.parts[other.parts.size() - 1 - i] : 0);
+    for (int i = 0; i < std::max(a.parts.size(), b.parts.size()); ++i) {
+        base a_part = (i < a.parts.size() ? a.parts[a.parts.size() - 1 - i] : 0);
+        base b_part = (i < b.parts.size() ? b.parts[b.parts.size() - 1 - i] : 0);
 
-        if (part > other_part) {
+        if (a_part > b_part) {
             return 1;
-        } else if (part < other_part) {
+        } else if (a_part < b_part) {
             return -1;
         }
     }
@@ -167,6 +167,10 @@ WideInt WideInt::operator+(const WideInt &other) const {
     }
 
     return r;
+}
+
+WideInt WideInt::operator-(const WideInt &other) const {
+
 }
 
 WideInt WideInt::operator-() {
