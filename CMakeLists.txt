@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmodules")
 
 include(cmake/Core.cmake)
 
-as_library(WideInt)
+add_library(WideInt STATIC src/WideInt.cpp)
 target_sources(WideInt
     PUBLIC
     FILE_SET modules TYPE CXX_MODULES FILES modules/WideInt.cppm

@@ -7,48 +7,37 @@ export module WideInt;
 export class WideInt {
     int8_t sign;
     int32_t exp;
+
+    // typedef base v8ui __attribute__ (( vector_size(32) ));
+    // std::vector<v8ui> parts;
     std::vector<base> parts;
 
-    int8_t compare(const WideInt&, const WideInt&) const;
-    void sum(const WideInt&, const WideInt&, const WideInt&) const;
-    void subtract() const;
+    static int debug_stream_flag;
 
 public:
     WideInt() = default;
-
     WideInt(const std::string&);
-
     WideInt(const WideInt&) = default;
 
-    bool operator==(const WideInt &other) const {
-        return compare(*this, other) == 0;
-    };
+    friend int8_t compare(const WideInt&, const WideInt&, bool absolute);
+    bool operator==(const WideInt&) const;
+    std::strong_ordering operator<=>(const WideInt&) const;
 
-    bool operator<(const WideInt &other) const {
-        return compare(*this, other) == -1;
-    }
-
-    bool operator>(const WideInt &other) const {
-        return compare(*this, other) == 1;
-    }
-
-    std::strong_ordering operator<=>(const WideInt &other) {
-        auto result = compare(*this, other);
-        if (result == 0)
-            return std::strong_ordering::equal;
-        if (result == 1)
-            return std::strong_ordering::greater;
-        return std::strong_ordering::less;
-    }
-
+    friend void sum(const WideInt&, const WideInt&, WideInt&);
     WideInt operator+(const WideInt&) const;
 
+    friend void sub(const WideInt&, const WideInt&, WideInt&);
     WideInt operator-(const WideInt&) const;
+    WideInt operator-() const;
 
-    WideInt operator-();
-
-    friend std::ostream &operator<<(std::ostream&, const WideInt&);
+    friend std::ostream& operator<<(std::ostream&, const WideInt&);
+    static std::ios_base& debug_stream(std::ios_base &os) {
+        os.iword(WideInt::debug_stream_flag) = !os.iword(WideInt::debug_stream_flag);
+        return os;
+    };
 };
+
+int WideInt::debug_stream_flag = std::ios_base::xalloc();
 
 export WideInt operator""_w(const char *str) {
     return WideInt(str);

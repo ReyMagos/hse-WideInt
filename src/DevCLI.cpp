@@ -13,20 +13,22 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    string command = static_cast<string>(argv[1]);
-    if (command == "--sum") {
-        if (argc < 4) {
-            cerr << "--sum <a> <b>: Not enough arguments" << endl;
+    for (int i = 1; i < argc; ++i) {
+        string command = static_cast<string>(argv[1]);
+        if (command == "--sum") {
+            if (i + 2 >= argc) {
+                cerr << "--sum <a> <b>: Not enough arguments" << endl;
+                return 1;
+            }
+            i += 2;
+
+            WideInt a(argv[2]);
+            WideInt b(argv[3]);
+            cout << WideInt::debug_stream << (a + b) << endl;
+        } else {
+            cerr << format("Unknown token: {}", command) << endl;
             return 1;
         }
-
-        WideInt a(argv[2]);
-        WideInt b(argv[3]);
-
-        cout << (a + b) << endl;
-    } else {
-        cerr << format("Unknown token: {}", command) << endl;
-        return 1;
     }
 
     return 0;
