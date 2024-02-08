@@ -5,6 +5,7 @@ module;
 #include <iostream>
 #include <iomanip>
 #include <format>
+#include <complex>
 #include "../modules/WideInt.hpp"
 
 module WideInt;
@@ -85,53 +86,53 @@ std::ostream& operator<<(std::ostream& os, const WideInt& w) {
     return os;
 }
 
-inline int8_t compare(const WideInt &a, const WideInt &b, bool absolute = false) {
+int8_t WideInt::compare(const WideInt &that, bool absolute = false) const {
     if (!absolute) {
-        if (a.sign < b.sign)
+        if (sign < that.sign)
             return 1;
-        else if (a.sign > b.sign)
+        else if (sign > that.sign)
             return -1;
     }
 
-    int8_t order = (a.sign == 0 || absolute ? 1 : -1);
+    int8_t order = (sign == 0 || absolute ? 1 : -1);
 
-    size_t a_len = a.parts.size();
-    size_t b_len = b.parts.size();
+    size_t len = parts.size();
+    size_t that_len = that.parts.size();
 
-    if (!a_len && !b_len)
+    if (!len && !that_len)
         return 0;
-    else if (!b_len)
+    else if (!that_len)
         return order;
-    else if (!a_len)
+    else if (!len)
         return -order;
 
-    int a_msp = a_len + a.exp;
-    int b_msp = b_len + b.exp;
+    int msp = len + exp;
+    int that_msp = that_len + that.exp;
 
-    if (a_msp > b_msp)
+    if (msp > that_msp)
         return order;
-    else if (a_msp < b_msp)
+    else if (msp < that_msp)
         return -order;
 
-    for (int i = 0; i < std::max(a_len, b_len); ++i) {
-        base a_part = (i < a_len ? a.parts[a_len - 1 - i] : 0);
-        base b_part = (i < b_len ? b.parts[b_len - 1 - i] : 0);
+    for (int i = 0; i < std::max(len, that_len); ++i) {
+        base part = (i < len ? parts[len - 1 - i] : 0);
+        base that_part = (i < that_len ? that.parts[that_len - 1 - i] : 0);
 
-        if (a_part > b_part)
+        if (part > that_part)
             return order;
-        else if (a_part < b_part)
+        else if (part < that_part)
             return -order;
     }
 
     return 0;
 }
 
-bool WideInt::operator==(const WideInt &other) const {
-    return compare(*this, other) == 0;
+bool WideInt::operator==(const WideInt &that) const {
+    return this->compare(that) == 0;
 };
 
-std::strong_ordering WideInt::operator<=>(const WideInt &other) const {
-    auto result = compare(*this, other);
+std::strong_ordering WideInt::operator<=>(const WideInt &that) const {
+    auto result = this->compare(that);
     if (result == 1)
         return std::strong_ordering::greater;
     if (result == -1)
@@ -139,23 +140,25 @@ std::strong_ordering WideInt::operator<=>(const WideInt &other) const {
     return std::strong_ordering::equal;
 }
 
-inline void sum(const WideInt &a, const WideInt &b, WideInt &r) {
-    int a_msp = a.parts.size() + a.exp,
-        b_msp = b.parts.size() + b.exp;
-    int a_lsp = a.exp,
-        b_lsp = b.exp;
-    r.exp = std::min(a_lsp, b_lsp);
+WideInt WideInt::sum(const WideInt &that, bool that_negative = false) const {
+    WideInt r;
+
+    int msp = parts.size() + exp,
+        that_msp = that.parts.size() + that.exp;
+    int lsp = exp,
+        that_lsp = that.exp;
+    r.exp = std::min(lsp, that_lsp);
 
     int leading_zeros = 0;
     base rem = 0;
-    for (int i = std::min(a_lsp, b_lsp); i <= std::max(a_msp, b_msp); ++i) {
-        base sum = rem;
-        if (i >= a_lsp && i < a_msp)
-            sum += a.parts[i - a.exp];
-        if (i >= b_lsp && i < b_msp)
-            sum += b.parts[i - b.exp];
+    for (int i = std::min(lsp, that_lsp); i <= std::max(msp, that_msp); ++i) {
+        base sum = PART_MAX + rem;
+        if (i >= lsp && i < msp)
+            sum += parts[i - exp];
+        if (i >= that_lsp && i < that_msp)
+            sum += (that_negative ? -1 : 1) * that.parts[i - that.exp];
 
-        rem = sum / PART_MAX;
+        rem = -1 + sum / PART_MAX;
         sum %= PART_MAX;
 
         if (sum != 0) {
@@ -166,70 +169,43 @@ inline void sum(const WideInt &a, const WideInt &b, WideInt &r) {
             (r.parts.empty() ? r.exp : leading_zeros) += 1;
         }
     }
+
+    return r;
 }
 
-inline void sub(const WideInt &a, const WideInt &b, WideInt &r) {
-    int a_msp = a.parts.size() + a.exp,
-        b_msp = b.parts.size() + b.exp;
-    int a_lsp = a.exp,
-        b_lsp = b.exp;
-    r.exp = std::min(a_lsp, b_lsp);
-
-    int leading_zeros = 0;
-    base rem = 0;
-    for (int i = std::min(a_lsp, b_lsp); i <= std::max(a_msp, b_msp); ++i) {
-        base diff = PART_MAX + rem;
-        if (i >= a_lsp && i < a_msp)
-            diff += a.parts[i - a.exp];
-        if (i >= b_lsp && i < b_msp)
-            diff -= b.parts[i - b.exp];
-
-        rem = -1 + diff / PART_MAX;
-        diff %= PART_MAX;
-
-        if (diff != 0) {
-            for (; leading_zeros > 0; --leading_zeros)
-                r.parts.push_back(0);
-            r.parts.push_back(diff);
-        } else {
-            (r.parts.empty() ? r.exp : leading_zeros) += 1;
-        }
-    }
-}
-
-WideInt WideInt::operator+(const WideInt &other) const {
+WideInt WideInt::operator+(const WideInt &that) const {
     WideInt r;
 
-    if (sign == other.sign) {
+    if (sign == that.sign) {
+        r = this->sum(that);
         r.sign = sign;
-        sum(*this, other, r);
     } else {
-        if (compare(*this, other, true) >= 0) {
+        if (this->compare(that, true) >= 0) {
+            r = this->sum(that, true);
             r.sign = sign;
-            sub(*this, other, r);
         } else {
-            r.sign = other.sign;
-            sub(other, *this, r);
+            r = that.sum(*this, true);
+            r.sign = that.sign;
         }
     }
 
     return r;
 }
 
-WideInt WideInt::operator-(const WideInt &other) const {
+WideInt WideInt::operator-(const WideInt &that) const {
     WideInt r;
 
-    if (sign == other.sign) {
-        if (compare(*this, other, true) >= 0) {
+    if (sign == that.sign) {
+        if (this->compare(that, true) >= 0) {
+            r = this->sum(that, true);
             r.sign = sign;
-            sub(*this, other, r);
         } else {
-            r.sign = -other.sign;
-            sub(other, *this, r);
+            r = that.sum(*this, true);
+            r.sign = -that.sign;
         }
     } else {
+        r = this->sum(that);
         r.sign = sign;
-        sum(*this, other, r);
     }
 
     return r;
@@ -242,3 +218,49 @@ WideInt WideInt::operator-() const {
     }
     return w;
 }
+
+//typedef std::complex<double> ftype;
+//
+//void fft(std::vector<ftype> &p, ftype wn) {
+//    int n = (int) p.size();
+//    if (n == 1)
+//        return;
+//
+//    std::vector<ftype> a(n / 2), b(n / 2);
+//    for (int i = 0; i < n / 2; i++) {
+//        a[i] = p[2 * i];
+//        b[i] = p[2 * i + 1];
+//    }
+//
+//    fft(a, wn * wn);
+//    fft(b, wn * wn);
+//
+//    ftype w = 1;
+//    for (int i = 0; i < n / 2; i++) {
+//        p[i] = a[i] + w * b[i];
+//        p[i + n / 2] = a[i] - w * b[i]; // w^(i+n/2) = -w^i
+//        w *= wn;
+//    }
+//}
+//
+//std::vector<ftype> evaluate(std::vector<int> p) {
+//    while (__builtin_popcount(p.size()) != 1)
+//        p.push_back(0);
+//    return fft(p, std::polar(1., 2 * pi / p.size()));
+//}
+//
+//std::vector<int> interpolate(std::vector<ftype> p) {
+//    int n = p.size();
+//    auto inv = fft(p, std::polar(1., -2 * pi / n));
+//    std::vector<int> res(n);
+//    for(int i = 0; i < n; i++)
+//        res[i] = round(real(inv[i]) / n);
+//    return res;
+//}
+//
+//WideInt WideInt::operator*(const WideInt& other) const {
+//    std::vector<ftype> a = evaluate(this->parts);
+//    std::vector<ftype> b = evaluate(other.parts);
+//
+//
+//}
