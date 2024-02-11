@@ -1,7 +1,3 @@
-//template<typename T> inline constexpr T msb(T n) {
-//    return __builtin_clz
-//}
-
 // http://graphics.stanford.edu/~seander/bithacks.html#ReverseByteWith64BitsDiv
 inline constexpr unsigned char reverse_byte(unsigned char b) {
     return b = (b * 0x0202020202ULL & 0x010884422010ULL) % 1023;

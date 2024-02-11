@@ -1,5 +1,9 @@
 module;
 
+#include <vector>
+#include <cstdint>
+#include <iostream>
+#include <compare>
 #include "WideInt.hpp"
 
 export module WideInt;
