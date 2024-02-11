@@ -6,14 +6,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmodules")
 
 include(cmake/Core.cmake)
 
-add_library(WideInt STATIC src/WideInt.cpp src/utils.h)
+file(GLOB WIDEINT_SOURCES src/*.cpp)
+add_library(WideInt STATIC ${WIDEINT_SOURCES})
 target_sources(WideInt
     PUBLIC
     FILE_SET modules TYPE CXX_MODULES FILES modules/WideInt.cppm
 )
 with_test(WideInt gtest_main)
 
-add_executable(WideIntCLI src/DevCLI.cpp)
+add_executable(WideIntCLI src/dev/CLI.cpp)
 target_link_libraries(WideIntCLI PRIVATE WideInt)
 
 # Google tests
