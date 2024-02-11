@@ -2,6 +2,10 @@ import WideInt;
 
 #include <gtest/gtest.h>
 
+void PrintTo(const WideInt &w, std::ostream *os) {
+    *os << WideInt::debug_stream << w;
+}
+
 /*
  * Equality tests `=`, `!=`
  */
@@ -263,6 +267,44 @@ TEST(WideInt_sum, long_float_diffexp_mixed2) {
     EXPECT_EQ(a + b, -0.000000000000000999999999999999998_w);
 }
 
+TEST(WideInt_sum, short_float_carry) {
+    WideInt a = 99.99_w;
+    WideInt b = 0.01_w;
+    EXPECT_EQ(a + b, 100_w);
+}
+
+TEST(WideInt_sub, short_float_carry) {
+    WideInt a = 100_w;
+    WideInt b = 0.01_w;
+    EXPECT_EQ(a - b, 99.99_w);
+}
+
+/* Multiplication tests '*' */
+
+TEST(WideInt_mul, zero) {
+    WideInt a = 0_w;
+    WideInt b = 0_w;
+    EXPECT_EQ(a * b, 0_w);
+}
+
+TEST(WideInt_mul, zero_negative) {
+    WideInt a = -0_w;
+    WideInt b = -0_w;
+    EXPECT_EQ(a * b, 0_w);
+}
+
+TEST(WideInt_mul, zero_mixed) {
+    WideInt a = 0_w;
+    WideInt b = -0_w;
+    EXPECT_EQ(a * b, 0_w);
+}
+
+TEST(WideInt_mul, zero_and_int) {
+    WideInt a = 0_w;
+    WideInt b = 1_w;
+    EXPECT_EQ(a * b, 0_w);
+}
+
 TEST(WideInt_mul, short_int1) {
     WideInt a = 1_w;
     WideInt b = 1_w;
@@ -299,8 +341,12 @@ TEST(WideInt_mul, long_int_diffexp) {
     EXPECT_EQ(a * b, 1786668682422051372605201155920424457931945217760000000000000000_w);
 }
 
-// 99.99 + 0.01
-// 10.00 - 0.01
+TEST(WideInt_mul, short_base) {
+    WideInt a = 24_w;
+    // TODO: Take base from PART_MAX
+    WideInt b = 1000000000_w;
+    EXPECT_EQ(a * b, 24000000000_w);
+}
+
 // 56 / 0
-// 67 * -0
-// * base || / base
+// x / base
