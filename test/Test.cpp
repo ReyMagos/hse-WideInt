@@ -162,6 +162,12 @@ TEST(WideInt_comp, zero_negative_long_small) {
     EXPECT_GT(a, b);
 }
 
+TEST(WideInt_comp, long_float_diffexp) {
+    WideInt a = 1234567890123456789012345.6789012_w;
+    WideInt b = 2345678.9012345678901234567890123_w;
+    EXPECT_GT(a, b);
+}
+
 /*
  * Addition and subtraction tests `+`, '-'
  */
@@ -256,3 +262,45 @@ TEST(WideInt_sum, long_float_diffexp_mixed2) {
     WideInt b = 0.000000000000000000000000000000002_w;
     EXPECT_EQ(a + b, -0.000000000000000999999999999999998_w);
 }
+
+TEST(WideInt_mul, short_int1) {
+    WideInt a = 1_w;
+    WideInt b = 1_w;
+    EXPECT_EQ(a * b, 1_w);
+}
+
+TEST(WideInt_mul, short_int2) {
+    WideInt a = 2_w;
+    WideInt b = 12_w;
+    EXPECT_EQ(a * b, 24_w);
+}
+
+TEST(WideInt_mul, short_int3) {
+    WideInt a = 123_w;
+    WideInt b = 235_w;
+    EXPECT_EQ(a * b, 28905_w);
+}
+
+TEST(WideInt_mul, short_int4) {
+    WideInt a = 123456_w;
+    WideInt b = 234567_w;
+    EXPECT_EQ(a * b, 28958703552_w);
+}
+
+TEST(WideInt_mul, long_int2) {
+    WideInt a = 12345678901234567890123456789012_w;
+    WideInt b = 23456789012345678901234567890123_w;
+    EXPECT_EQ(a * b, 289589985200426886037189477355419878723190519984801905209728476_w);
+}
+
+TEST(WideInt_mul, long_int_diffexp) {
+    WideInt a = 234352_w;
+    WideInt b = 7623867867234123765127676127877826764576130000000000000000_w;
+    EXPECT_EQ(a * b, 1786668682422051372605201155920424457931945217760000000000000000_w);
+}
+
+// 99.99 + 0.01
+// 10.00 - 0.01
+// 56 / 0
+// 67 * -0
+// * base || / base

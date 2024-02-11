@@ -8,7 +8,7 @@
 #include <compare>
 
 using base = uint32_t;
-#define PART_SIZE 9
-#define PART_MAX 1000000000
+#define PART_SIZE 7
+#define PART_MAX 10000000
 
 #endif // WIDEINT_H
