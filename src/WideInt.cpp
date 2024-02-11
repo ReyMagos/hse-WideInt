@@ -6,6 +6,10 @@ module;
 #include <iomanip>
 #include <format>
 #include <complex>
+#include <cstring>
+#include <numbers>
+
+#include "utils.h"
 #include "../modules/WideInt.hpp"
 
 module WideInt;
@@ -70,7 +74,7 @@ WideInt::WideInt(const std::string &num) {
     }
 }
 
-std::ostream& operator<<(std::ostream& os, const WideInt& w) {
+std::ostream &operator<<(std::ostream &os, const WideInt &w) {
     if (os.iword(WideInt::debug_stream_flag) == 0) {
         os << std::format("[sign={}, exp={}, parts={}]: ", +w.sign, w.exp, w.parts.size());
 
@@ -96,8 +100,8 @@ int8_t WideInt::compare(const WideInt &that, bool absolute = false) const {
 
     int8_t order = (sign == 0 || absolute ? 1 : -1);
 
-    size_t len = parts.size();
-    size_t that_len = that.parts.size();
+    size_t len = parts.size(),
+            that_len = that.parts.size();
 
     if (!len && !that_len)
         return 0;
@@ -106,8 +110,8 @@ int8_t WideInt::compare(const WideInt &that, bool absolute = false) const {
     else if (!len)
         return -order;
 
-    int msp = len + exp;
-    int that_msp = that_len + that.exp;
+    int msp = len + exp,
+            that_msp = that_len + that.exp;
 
     if (msp > that_msp)
         return order;
@@ -115,8 +119,8 @@ int8_t WideInt::compare(const WideInt &that, bool absolute = false) const {
         return -order;
 
     for (int i = 0; i < std::max(len, that_len); ++i) {
-        base part = (i < len ? parts[len - 1 - i] : 0);
-        base that_part = (i < that_len ? that.parts[that_len - 1 - i] : 0);
+        base part = (i < len ? parts[len - 1 - i] : 0),
+                that_part = (i < that_len ? that.parts[that_len - 1 - i] : 0);
 
         if (part > that_part)
             return order;
@@ -141,23 +145,27 @@ std::strong_ordering WideInt::operator<=>(const WideInt &that) const {
 }
 
 WideInt WideInt::sum(const WideInt &that, bool that_negative = false) const {
+    // TODO: Pre-allocate vector
     WideInt r;
 
     int msp = parts.size() + exp,
-        that_msp = that.parts.size() + that.exp;
+            that_msp = that.parts.size() + that.exp;
     int lsp = exp,
-        that_lsp = that.exp;
+            that_lsp = that.exp;
     r.exp = std::min(lsp, that_lsp);
 
     int leading_zeros = 0;
     base rem = 0;
     for (int i = std::min(lsp, that_lsp); i <= std::max(msp, that_msp); ++i) {
+        // To avoid negative underflow during subtraction
+        // we borrow 1 from the next part which is `PART_MAX` in current
         base sum = PART_MAX + rem;
         if (i >= lsp && i < msp)
             sum += parts[i - exp];
         if (i >= that_lsp && i < that_msp)
             sum += (that_negative ? -1 : 1) * that.parts[i - that.exp];
 
+        // Here -1 will return borrowed 1
         rem = -1 + sum / PART_MAX;
         sum %= PART_MAX;
 
@@ -219,48 +227,79 @@ WideInt WideInt::operator-() const {
     return w;
 }
 
-//typedef std::complex<double> ftype;
-//
-//void fft(std::vector<ftype> &p, ftype wn) {
-//    int n = (int) p.size();
-//    if (n == 1)
-//        return;
-//
-//    std::vector<ftype> a(n / 2), b(n / 2);
-//    for (int i = 0; i < n / 2; i++) {
-//        a[i] = p[2 * i];
-//        b[i] = p[2 * i + 1];
-//    }
-//
-//    fft(a, wn * wn);
-//    fft(b, wn * wn);
-//
-//    ftype w = 1;
-//    for (int i = 0; i < n / 2; i++) {
-//        p[i] = a[i] + w * b[i];
-//        p[i + n / 2] = a[i] - w * b[i]; // w^(i+n/2) = -w^i
-//        w *= wn;
-//    }
-//}
-//
-//std::vector<ftype> evaluate(std::vector<int> p) {
-//    while (__builtin_popcount(p.size()) != 1)
-//        p.push_back(0);
-//    return fft(p, std::polar(1., 2 * pi / p.size()));
-//}
-//
-//std::vector<int> interpolate(std::vector<ftype> p) {
-//    int n = p.size();
-//    auto inv = fft(p, std::polar(1., -2 * pi / n));
-//    std::vector<int> res(n);
-//    for(int i = 0; i < n; i++)
-//        res[i] = round(real(inv[i]) / n);
-//    return res;
-//}
-//
-//WideInt WideInt::operator*(const WideInt& other) const {
-//    std::vector<ftype> a = evaluate(this->parts);
-//    std::vector<ftype> b = evaluate(other.parts);
-//
-//
-//}
+typedef std::complex<long double> complex_t;
+
+void fft(complex_t *a, int n, bool invert) {
+    for (int len = 2; len <= n; len <<= 1) {
+        double arg = (invert ? -1 : 1) * 2 * std::numbers::pi / len;
+        complex_t wn(cos(arg), sin(arg));
+        for (int i = 0; i < n; i += len) {
+            int k = (len >> 1);
+            complex_t w(1);
+            for (int j = 0; j < k; ++j) {
+                complex_t u = a[i + j],
+                          v = w * a[i + j + k];
+                a[i + j] = u + v;
+                a[i + j + k] = u - v;
+                w *= wn;
+            }
+        }
+    }
+
+    if (invert)
+        for (int i = 0; i < n; ++i)
+            a[i] /= n;
+}
+
+
+WideInt WideInt::operator*(const WideInt &that) const {
+    size_t firstSize = parts.size();
+    size_t secondSize = that.parts.size();
+
+    const int lgn = std::__lg(std::max(firstSize, secondSize) - 1) + 2;
+    size_t n = (1 << lgn);
+
+    complex_t p1[n], p2[n];
+    std::memset(p1, 0, sizeof(complex_t) * n);
+    for (unsigned i = 0; i < firstSize; ++i) {
+        p1[reverse_bits<unsigned>(i) >> (32 - lgn)] = parts[i];
+    }
+
+    std::memset(p2, 0, sizeof(complex_t) * n);
+    for (unsigned i = 0; i < secondSize; ++i) {
+        p2[reverse_bits<unsigned>(i) >> (32 - lgn)] = that.parts[i];
+    }
+
+    fft(p1, n, false);
+    fft(p2, n, false);
+    for (size_t i = 0; i < n; ++i)
+        p1[i] *= p2[i];
+
+    for (unsigned i = 0; i < n; ++i) {
+        unsigned j = reverse_bits<unsigned>(i) >> (32 - lgn);
+        if (i < j)
+            swap(p1[i], p1[j]);
+    }
+
+    fft(p1, n, true);
+
+    WideInt r;
+    r.sign = (sign + that.sign) % 2;
+//    r.exp = n - (firstSize - exp) - (secondSize - that.exp) + 1;
+    r.exp = exp + that.exp;
+    r.parts.resize(n);
+
+    base rem = 0;
+    for (size_t i = 0; i < n; ++i) {
+        auto res = rem + std::lround(p1[i].real());
+        r.parts[i] = res % PART_MAX;
+        rem = res / PART_MAX;
+    }
+
+    while (r.parts.back() == 0) {
+        r.parts.pop_back();
+//        r.exp--;
+    }
+
+    return r;
+}
