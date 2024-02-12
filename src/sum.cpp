@@ -11,9 +11,9 @@ WideInt WideInt::sum(const WideInt &that, bool that_negative = false) const {
     WideInt r;
 
     int msp = parts.size() + exp,
-            that_msp = that.parts.size() + that.exp;
+        that_msp = that.parts.size() + that.exp;
     int lsp = exp,
-            that_lsp = that.exp;
+        that_lsp = that.exp;
     r.exp = std::min(lsp, that_lsp);
 
     int leading_zeros = 0;

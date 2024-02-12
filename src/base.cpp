@@ -31,7 +31,7 @@ WideInt::WideInt(const std::string &num) {
         } else if (c == '.') {
             point = i;
         } else if (c != '0') {
-            throw std::runtime_error(
+            throw std::invalid_argument(
                     std::format("Unexpected symbol '{}' at position {}", c, i));
         }
     }
@@ -72,21 +72,41 @@ WideInt::WideInt(const std::string &num) {
     }
 }
 
-std::ostream &operator<<(std::ostream &os, const WideInt &w) {
-    if (os.iword(WideInt::debug_stream_flag) == 1) {
-        os << std::format("[sign={}, exp={}, parts={}]: ", +w.sign, w.exp, w.parts.size());
+void print(std::ostream &os, const WideInt &w) {
+    // FIXME: Trailing zeros and point
+    if (w.sign)
+        os << '-';
 
-        for (int i = 0; i < w.parts.size(); ++i) {
-            os << std::setfill('0') << std::setw(9) << w.parts[i];
-            if (i < w.parts.size() - 1)
-                os << '.';
-        }
-    } else {
-        if (w.sign)
-            os << '-';
-
-        // TODO: Standard printing
+    int len = w.parts.size();
+    bool first = true;
+    for (int i = std::max(-w.exp, len - 1); i >= std::min(-w.exp, 0); --i) {
+        if (!first)
+            os << std::setfill('0') << std::setw(PART_SIZE);
+        os << (i >= 0 && i < len ? w.parts[i] : 0);
+        if (i == -w.exp)
+            os << '.';
+        first = false;
     }
+}
+
+#if BUILD_TYPE == Debug
+void debug_print(std::ostream &os, const WideInt &w) {
+    os << std::format("[sign={}, exp={}, parts={}]: ", +w.sign, w.exp, w.parts.size());
+
+    for (int i = 0; i < w.parts.size(); ++i) {
+        os << std::setfill('0') << std::setw(PART_SIZE) << w.parts[i];
+        if (i < w.parts.size() - 1)
+            os << '.';
+    }
+}
+#endif
+
+std::ostream &operator<<(std::ostream &os, const WideInt &w) {
+#if BUILD_TYPE == Debug
+    (os.iword(WideInt::debug_stream_flag) == 1 ? debug_print : print)(os, w);
+#else
+    print(os, w);
+#endif
 
     return os;
 }

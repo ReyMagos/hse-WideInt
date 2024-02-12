@@ -65,7 +65,6 @@ WideInt WideInt::operator*(const WideInt &that) const {
 
     WideInt r;
     r.sign = (sign + that.sign) % 2;
-//    r.exp = n - (len - exp) - (that_len - that.exp) + 1;
     r.exp = exp + that.exp;
     r.parts.resize(n);
 
@@ -76,10 +75,8 @@ WideInt WideInt::operator*(const WideInt &that) const {
         rem = res / PART_MAX;
     }
 
-    while (r.parts.back() == 0) {
+    while (r.parts.back() == 0)
         r.parts.pop_back();
-//        r.exp--;
-    }
 
     return r;
 }

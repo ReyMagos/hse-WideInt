@@ -4,18 +4,21 @@ project(WideInt)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmodules")
 
-include(cmake/Core.cmake)
+add_definitions(-DBUILD_TYPE=${CMAKE_BUILD_TYPE})
 
-file(GLOB WIDEINT_SOURCES src/*.cpp)
-add_library(WideInt STATIC ${WIDEINT_SOURCES})
-target_sources(WideInt
+file(GLOB SOURCES src/*.cpp)
+add_library(${PROJECT_NAME} STATIC ${SOURCES})
+target_sources(${PROJECT_NAME}
     PUBLIC
     FILE_SET modules TYPE CXX_MODULES FILES modules/WideInt.cppm
 )
-with_test(WideInt gtest_main)
 
-add_executable(WideIntCLI src/dev/CLI.cpp)
-target_link_libraries(WideIntCLI PRIVATE WideInt)
+file(GLOB TEST_SOURCES test/Test.cpp)
+add_executable(${PROJECT_NAME}-Test ${TEST_SOURCES})
+target_link_libraries(${PROJECT_NAME}-Test ${PROJECT_NAME} gtest_main)
+
+add_executable(WideInt-CLI src/dev/CLI.cpp)
+target_link_libraries(WideInt-CLI PRIVATE ${PROJECT_NAME})
 
 # Google tests
 enable_testing()
