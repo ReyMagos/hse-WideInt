@@ -1,5 +1,6 @@
 import WideInt;
 
+#include <stdexcept>
 #include <gtest/gtest.h>
 
 void PrintTo(const WideInt &w, std::ostream *os) {
@@ -347,6 +348,62 @@ TEST(WideInt_mul, short_base) {
     WideInt b = 1000000000_w;
     EXPECT_EQ(a * b, 24000000000_w);
 }
+
+/* Division tests '/' */
+
+TEST(WideInt_div, by_zero) {
+    WideInt a = 1_w;
+    WideInt b = 0_w;
+    EXPECT_THROW(a / b, DivisionByZeroError);
+}
+
+TEST(WideInt_div, div2) {
+    WideInt a = 24_w;
+    WideInt b = 2_w;
+    EXPECT_EQ(a / b, 12_w);
+}
+
+TEST(WideInt_div, long_div2) {
+    WideInt a = 14234232_w;
+    WideInt b = 2_w;
+    EXPECT_EQ(a / b, 7117116_w);
+}
+
+TEST(WideInt_div, short_float_div2) {
+    WideInt a = 1_w;
+    WideInt b = 2_w;
+    EXPECT_EQ(a / b, 0.5_w);
+}
+
+TEST(WideInt_div, long_float_div2) {
+    WideInt a = 123423.343_w;
+    WideInt b = 2_w;
+    EXPECT_EQ(a / b, 61711.6715_w);
+}
+
+TEST(WideInt_div, short_int1) {
+    WideInt a = 12_w;
+    WideInt b = 2_w;
+    EXPECT_EQ(a / b, 6_w);
+}
+
+TEST(WideInt_div, short_int2) {
+    WideInt a = 13_w;
+    WideInt b = 2_w;
+    EXPECT_EQ(a / b, 6.5_w);
+}
+
+TEST(WideInt_div, short_by_long) {
+    WideInt a = 213_w;
+    WideInt b = 1467_w;
+    EXPECT_EQ(a / b, 0.14519427402862986_w);
+}
+
+//TEST(WideInt_div, long_int) {
+//    WideInt a = 971243589643_w;
+//    WideInt b = 31_w;
+//    EXPECT_EQ(a / b, 31330438375.580647_w);
+//}
 
 // 56 / 0
 // x / base

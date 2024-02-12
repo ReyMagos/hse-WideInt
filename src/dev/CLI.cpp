@@ -38,6 +38,17 @@ int main(int argc, char *argv[]) {
             i += 2;
 
             cout << WideInt::debug_stream << (a * b) << endl;
+        } else if (command == "--div") {
+            if (i + 2 >= argc) {
+                cerr << "--div <a> <b>: Not enough arguments" << endl;
+                return 1;
+            }
+
+            WideInt a(argv[i + 1]);
+            WideInt b(argv[i + 2]);
+            i += 2;
+
+            cout << WideInt::debug_stream << (a / b) << endl;
         } else {
             cerr << format("Unknown token: {}", command) << endl;
             return 1;
