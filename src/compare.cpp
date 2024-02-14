@@ -16,16 +16,15 @@ int8_t WideInt::compare(const WideInt &that, bool absolute = false) const {
 
     int8_t order = (sign == 0 || absolute ? 1 : -1);
 
-    size_t len = parts.size(),
-           that_len = that.parts.size();
-
-    if (!len && !that_len)
+    if (this->isZero() && that.isZero())
         return 0;
-    else if (!that_len)
+    else if (that.isZero())
         return order;
-    else if (!len)
+    else if (this->isZero())
         return -order;
 
+    size_t len = parts.size(),
+            that_len = that.parts.size();
     int msp = len + exp,
         that_msp = that_len + that.exp;
 

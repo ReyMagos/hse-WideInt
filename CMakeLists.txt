@@ -2,7 +2,8 @@
 project(WideInt)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmodules")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -fmodules")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fmodules -O2 -march=native")
 
 add_definitions(-DBUILD_TYPE=${CMAKE_BUILD_TYPE})
 
@@ -13,12 +14,15 @@ target_sources(${PROJECT_NAME}
     FILE_SET modules TYPE CXX_MODULES FILES modules/WideInt.cppm
 )
 
-file(GLOB TEST_SOURCES test/Test.cpp)
+file(GLOB TEST_SOURCES test/*.cpp)
 add_executable(${PROJECT_NAME}-Test ${TEST_SOURCES})
 target_link_libraries(${PROJECT_NAME}-Test ${PROJECT_NAME} gtest_main)
 
 add_executable(WideInt-CLI src/dev/CLI.cpp)
 target_link_libraries(WideInt-CLI PRIVATE ${PROJECT_NAME})
+
+add_executable(WideInt-PI run/pi.cpp)
+target_link_libraries(WideInt-PI PRIVATE ${PROJECT_NAME})
 
 # Google tests
 enable_testing()

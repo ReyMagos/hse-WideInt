@@ -10,7 +10,8 @@ int main(int argc, char *argv[]) {
     if (argc == 1) {
         cout << "WideInt testing CLI:\n"
                 "  --sum <a> <b>       Evaluate addition a + b\n"
-                "  --multiply <a> <b>  Evaluate multiplication a * b" << endl;
+                "  --multiply <a> <b>  Evaluate multiplication a * b\n"
+                "  --div <a> <b>       Evaluate division a / b" << endl;
         return 0;
     }
 
@@ -26,7 +27,7 @@ int main(int argc, char *argv[]) {
             WideInt b(argv[i + 2]);
             i += 2;
 
-            cout << WideInt::debug_stream << (a + b) << endl;
+            cout << (a + b) << endl;
         } else if (command == "--multiply") {
             if (i + 2 >= argc) {
                 cerr << "--multiply <a> <b>: Not enough arguments" << endl;
@@ -37,7 +38,7 @@ int main(int argc, char *argv[]) {
             WideInt b(argv[i + 2]);
             i += 2;
 
-            cout << WideInt::debug_stream << (a * b) << endl;
+            cout << (a * b) << endl;
         } else if (command == "--div") {
             if (i + 2 >= argc) {
                 cerr << "--div <a> <b>: Not enough arguments" << endl;
@@ -48,7 +49,7 @@ int main(int argc, char *argv[]) {
             WideInt b(argv[i + 2]);
             i += 2;
 
-            cout << WideInt::debug_stream << (a / b) << endl;
+            cout << (a / b) << endl;
         } else {
             cerr << format("Unknown token: {}", command) << endl;
             return 1;
