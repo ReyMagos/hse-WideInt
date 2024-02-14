@@ -9,6 +9,7 @@ module WideInt;
 WideInt WideInt::sum(const WideInt &that, bool that_negative = false) const {
     // TODO: Pre-allocate vector
     WideInt r;
+    r.prec = std::max(prec, that.prec);
 
     int msp = parts.size() + exp,
         that_msp = that.parts.size() + that.exp;
@@ -88,7 +89,7 @@ WideInt WideInt::operator-(const WideInt &that) const {
 
 WideInt WideInt::operator-() const {
     WideInt w(*this);
-    if (!w.parts.empty()) {
+    if (!w.isZero()) {
         w.sign = !w.sign;
     }
     return w;

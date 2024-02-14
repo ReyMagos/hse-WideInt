@@ -12,6 +12,9 @@ module WideInt;
 
 WideInt::WideInt(const std::string &num) {
     sign = 0;
+    exp = 0;
+    prec = DEFAULT_PREC;
+
     bool is_zero = true;
 
     // Actually `start` and `end` show index of the first and the last
@@ -37,7 +40,6 @@ WideInt::WideInt(const std::string &num) {
     }
 
     if (is_zero) {
-        exp = 0;
         return;
     }
 
@@ -65,6 +67,30 @@ WideInt::WideInt(const std::string &num) {
             continue;
 
         parts[j / PART_SIZE] += (num[i] - '0') * offset;
+        offset *= 10;
+        if (offset >= PART_MAX)
+            offset = 1;
+        ++j;
+    }
+}
+
+// FIXME: This is temporary version that does not handle trailing zeros
+//        and does not pre-allocate vector
+WideInt::WideInt(long long num) {
+    sign = (num < 0);
+    exp = 0;
+    prec = DEFAULT_PREC;
+
+    base offset = 1;
+    int j = 0;
+    while (num) {
+        int8_t digit = num % 10;
+        num /= 10;
+
+        if (j / PART_SIZE > (int)parts.size() - 1)
+            parts.push_back(0);
+        parts[j / PART_SIZE] += digit * offset;
+
         offset *= 10;
         if (offset >= PART_MAX)
             offset = 1;
@@ -104,6 +130,7 @@ void debug_print(std::ostream &os, const WideInt &w) {
 std::ostream &operator<<(std::ostream &os, const WideInt &w) {
 #if BUILD_TYPE == Debug
     (os.iword(WideInt::debug_stream_flag) == 1 ? debug_print : print)(os, w);
+    os.iword(WideInt::debug_stream_flag) = 0;
 #else
     print(os, w);
 #endif

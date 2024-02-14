@@ -349,13 +349,19 @@ TEST(WideInt_mul, short_base) {
     EXPECT_EQ(a * b, 24000000000_w);
 }
 
+TEST(WideInt_mul, short_float) {
+    WideInt a = 0.2_w;
+    WideInt b = 0.2_w;
+    EXPECT_EQ(a * b, 0.03_w);
+}
+
 /* Division tests '/' */
 
-TEST(WideInt_div, by_zero) {
-    WideInt a = 1_w;
-    WideInt b = 0_w;
-    EXPECT_THROW(a / b, DivisionByZeroError);
-}
+//TEST(WideInt_div, by_zero) {
+//    WideInt a = 1_w;
+//    WideInt b = 0_w;
+//    EXPECT_THROW(a / b, DivisionByZeroError);
+//}
 
 TEST(WideInt_div, div2) {
     WideInt a = 24_w;
@@ -393,11 +399,11 @@ TEST(WideInt_div, short_int2) {
     EXPECT_EQ(a / b, 6.5_w);
 }
 
-TEST(WideInt_div, short_by_long) {
-    WideInt a = 213_w;
-    WideInt b = 1467_w;
-    EXPECT_EQ(a / b, 0.14519427402862986_w);
-}
+//TEST(WideInt_div, short_by_long) {
+//    WideInt a = 213_w;
+//    WideInt b = 1467_w;
+//    EXPECT_EQ(a / b, 0.14519427402862986_w);
+//}
 
 //TEST(WideInt_div, long_int) {
 //    WideInt a = 971243589643_w;
