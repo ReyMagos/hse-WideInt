@@ -6,19 +6,17 @@ module;
 
 module WideInt;
 
-WideInt WideInt::sum(const WideInt &that, bool that_negative = false) const {
-    // TODO: Pre-allocate vector
-    WideInt r;
-    r.prec = std::max(prec, that.prec);
-
+void WideInt::sum(const WideInt &that, WideInt &res, bool that_negative = false) const {
     int msp = parts.size() + exp,
-        that_msp = that.parts.size() + that.exp;
+            that_msp = that.parts.size() + that.exp;
     int lsp = exp,
-        that_lsp = that.exp;
-    r.exp = std::min(lsp, that_lsp);
+            that_lsp = that.exp;
+    res.exp = std::min(lsp, that_lsp);
+    res.parts.resize(std::max(msp, that_msp) - std::min(lsp, that_lsp) + 1);
 
-    int leading_zeros = 0;
     base rem = 0;
+    int leading_zeros = 0;
+    int j = 0;
     for (int i = std::min(lsp, that_lsp); i <= std::max(msp, that_msp); ++i) {
         // To avoid negative underflow during subtraction
         // we borrow 1 from the next part which is `PART_MAX` in current
@@ -32,35 +30,48 @@ WideInt WideInt::sum(const WideInt &that, bool that_negative = false) const {
         rem = -1 + sum / PART_MAX;
         sum %= PART_MAX;
 
-        if (sum != 0) {
-            for (; leading_zeros > 0; --leading_zeros)
-                r.parts.push_back(0);
-            r.parts.push_back(sum);
-        } else {
-            (r.parts.empty() ? r.exp : leading_zeros) += 1;
-        }
+        if (res.parts.empty() && sum == 0)
+            res.exp += 1;
+        else
+            res.parts[j++] = sum;
     }
 
-    return r;
+    while (res.parts.back() == 0)
+        res.parts.pop_back();
 }
 
 WideInt WideInt::operator+(const WideInt &that) const {
-    WideInt r;
+    WideInt res;
 
     if (sign == that.sign) {
-        r = this->sum(that);
-        r.sign = sign;
+        this->sum(that, res);
+        res.sign = sign;
     } else {
         if (this->compare(that, true) >= 0) {
-            r = this->sum(that, true);
-            r.sign = sign;
+            this->sum(that, res, true);
+            res.sign = sign;
         } else {
-            r = that.sum(*this, true);
-            r.sign = that.sign;
+            that.sum(*this, res, true);
+            res.sign = that.sign;
         }
     }
 
-    return r;
+    return res;
+}
+
+WideInt WideInt::operator+=(const WideInt &that) {
+    if (sign == that.sign) {
+        this->sum(that, *this);
+    } else {
+        if (this->compare(that, true) >= 0) {
+            this->sum(that, *this, true);
+        } else {
+            that.sum(*this, *this, true);
+            sign = that.sign;
+        }
+    }
+
+    return *this;
 }
 
 WideInt WideInt::operator-(const WideInt &that) const {
@@ -69,22 +80,22 @@ WideInt WideInt::operator-(const WideInt &that) const {
     // minus_that.sign = !minus_that.sign;
     // return *this + minus_that;
 
-    WideInt r;
+    WideInt res;
 
     if (sign == that.sign) {
         if (this->compare(that, true) >= 0) {
-            r = this->sum(that, true);
-            r.sign = sign;
+            this->sum(that, res, true);
+            res.sign = sign;
         } else {
-            r = that.sum(*this, true);
-            r.sign = !that.sign;
+            that.sum(*this, res, true);
+            res.sign = !that.sign;
         }
     } else {
-        r = this->sum(that);
-        r.sign = sign;
+        this->sum(that, res);
+        res.sign = sign;
     }
 
-    return r;
+    return res;
 }
 
 WideInt WideInt::operator-() const {
