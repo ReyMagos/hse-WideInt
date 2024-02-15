@@ -3,7 +3,6 @@ module;
 #include <cstdint>
 #include <vector>
 #include <stdexcept>
-#include <iostream>
 #include "../modules/WideInt.hpp"
 
 module WideInt;
@@ -16,27 +15,32 @@ public:
 };
 
 WideInt WideInt::binary_div() const {
-    bool odd = parts[0] & 1;
-
-    WideInt r;
-    r.sign = sign;
-    r.prec = prec;
+    WideInt res;
+    res.sign = sign;
 
     // `odd` adds new part for the edge odd digit's quotient
-    r.exp = exp - odd;
-    r.parts = std::vector<base>(parts.size() + odd);
+    int odd = parts[0] & 1;
+    res.exp = exp - odd;
+
+    int cut = 0;
+    if (res.exp < 0 && -res.exp > res.prec)
+        cut = -res.exp - res.prec;
+    res.exp += cut;
+
+    res.parts.resize(parts.size() + odd - cut);
 
     size_t len = parts.size(),
-           rlen = r.parts.size();
+           rlen = res.parts.size();
     for (int i = 1; i <= len; ++i) {
-        r.parts[rlen - i] += parts[len - i] >> 1;
-        r.parts[rlen - i - 1] += ((parts[len - i] & 1) * PART_MAX) >> 1;
+        res.parts[rlen - i] += parts[len - i] >> 1;
+        if (i + 1 <= rlen)
+            res.parts[rlen - i - 1] += ((parts[len - i] & 1) * PART_MAX) >> 1;
     }
 
-    if (r.parts.back() == 0)
-        r.parts.pop_back();
+    while (res.parts.back() == 0)
+        res.parts.pop_back();
 
-    return r;
+    return res;
 }
 
 WideInt WideInt::operator/(const WideInt &that) const {
@@ -50,24 +54,12 @@ WideInt WideInt::operator/(const WideInt &that) const {
     WideInt left = 0_w, right = WideInt(*this);
     while (right - left > eps) {
         WideInt quotient = (left + right).binary_div();
-        if (quotient * that > *this)
+        if (quotient * that > *this) {
             right = quotient;
-        else
+        } else {
             left = quotient;
+        }
     }
 
-    WideInt res;
-    res.sign = left.sign;
-    res.prec = prec;
-    res.exp = left.exp;
-
-    unsigned cut = 0;
-    if (res.exp < 0 && -res.exp > res.prec)
-        cut = -res.exp - res.prec;
-    res.exp += cut;
-
-    for (int i = cut; i < left.parts.size(); ++i)
-        res.parts.push_back(left.parts[i]);
-
-    return res;
+    return left;
 }

@@ -13,7 +13,6 @@ module WideInt;
 WideInt::WideInt(const std::string &num) {
     sign = 0;
     exp = 0;
-    prec = DEFAULT_PREC;
 
     bool is_zero = true;
 
@@ -79,7 +78,6 @@ WideInt::WideInt(const std::string &num) {
 WideInt::WideInt(long long num) {
     sign = (num < 0);
     exp = 0;
-    prec = DEFAULT_PREC;
 
     base offset = 1;
     int j = 0;

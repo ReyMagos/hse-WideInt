@@ -10,64 +10,6 @@ module;
 
 module WideInt;
 
-//template <typename T>
-//struct complex {
-//    T re;
-//    T im;
-//
-//    complex() = default;
-//    complex(T real) : re(real), im(0) {};
-//    complex(T real, T imaginary) : re(real), im(imaginary) {};
-//
-//    complex operator+(const complex &that) const {
-//        complex res;
-//        res.re = (re + that.re);
-//        res.im = (im + that.im);
-//        return res;
-//    }
-//
-//    complex operator-(const complex &that) const {
-//        return *this + (-that);
-//    }
-//
-//    complex operator-() const {
-//        complex res(*this);
-//        res.im = -res.im;
-//        return res;
-//    }
-//
-//    complex operator*(const complex &that) const {
-//        complex res;
-//
-//        res.re = (re * that.re - im * that.im);
-//        res.im = (re * that.im + im * that.re);
-//
-//        return res;
-//    };
-//
-//    complex& operator*=(const complex &that) {
-//        *this = std::move(*this * that);
-//        return *this;
-//    };
-//
-//    complex operator/(const complex &that) const {
-//        complex res;
-//
-//        T d = that.re * that.re + that.im * that.im;
-//        res.re = (re * that.re + im * that.im) / d;
-//        res.im = (that.re * im - re * that.im) / d;
-//
-//        return res;
-//    }
-//
-//    complex& operator/=(const complex &that) {
-//        *this = std::move(*this / that);
-//        return *this;
-//    }
-//};
-//
-//typedef complex<long double> ftype;
-
 typedef std::complex<long double> ftype;
 
 void fft(ftype *a, int n, bool invert) {
@@ -126,14 +68,13 @@ WideInt WideInt::operator*(const WideInt &that) const {
 
     WideInt r;
     r.sign = (sign + that.sign) % 2;
-    r.prec = std::max(prec, that.prec);
-    r.exp = exp + that.exp;
 
+    r.exp = exp + that.exp;
     unsigned cut = 0;
     if (r.exp < 0 && -r.exp > r.prec)
         cut = -r.exp - r.prec;
-
     r.exp += cut;
+
     r.parts.resize(n - cut);
 
     base rem = 0;
@@ -151,4 +92,9 @@ WideInt WideInt::operator*(const WideInt &that) const {
         r.parts.pop_back();
 
     return r;
+}
+
+WideInt WideInt::operator*=(const WideInt &that) {
+    *this = std::move(*this * that);
+    return *this;
 }

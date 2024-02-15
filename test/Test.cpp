@@ -352,7 +352,7 @@ TEST(WideInt_mul, short_base) {
 TEST(WideInt_mul, short_float) {
     WideInt a = 0.2_w;
     WideInt b = 0.2_w;
-    EXPECT_EQ(a * b, 0.03_w);
+    EXPECT_EQ(a * b, 0.04_w);
 }
 
 /* Division tests '/' */
