@@ -7,13 +7,6 @@ module;
 
 module WideInt;
 
-class DivisionByZeroError: public std::exception {
-public:
-    const char *what() const noexcept {
-        return "Division by zero";
-    };
-};
-
 WideInt WideInt::binary_div() const {
     WideInt res;
     res.sign = sign;

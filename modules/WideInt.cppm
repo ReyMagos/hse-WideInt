@@ -54,6 +54,12 @@ public:
     WideInt operator*=(const WideInt &that);
 
     WideInt operator/(const WideInt&) const;
+    class DivisionByZeroError: public std::exception {
+    public:
+        const char *what() const noexcept {
+            return "Division by zero";
+        };
+    };
 
     friend std::ostream& operator<<(std::ostream&, const WideInt&);
     friend void print(std::ostream&, const WideInt&);

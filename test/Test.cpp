@@ -357,11 +357,11 @@ TEST(WideInt_mul, short_float) {
 
 /* Division tests '/' */
 
-//TEST(WideInt_div, by_zero) {
-//    WideInt a = 1_w;
-//    WideInt b = 0_w;
-//    EXPECT_THROW(a / b, DivisionByZeroError);
-//}
+TEST(WideInt_div, by_zero) {
+    WideInt a = 1_w;
+    WideInt b = 0_w;
+    EXPECT_THROW(a / b, WideInt::DivisionByZeroError);
+}
 
 TEST(WideInt_div, div2) {
     WideInt a = 24_w;
