@@ -1,4 +1,4 @@
-# HSE-WideInt
+# hse-WideInt
 
 Implementation of arbitary precision arithmetic written in C++
 
@@ -7,8 +7,8 @@ Implementation of arbitary precision arithmetic written in C++
 Tools: `cmake>=3.28`, `clang>=16`, `ninja>=1.11`
 
 ```bash
-git clone https://github.com/ReyMagos/HSE-WideInt.git
-cd HSE-WideInt
+git clone https://github.com/ReyMagos/hse-WideInt.git
+cd hse-WideInt
 
 mkdir build
 cmake . -B ./build -G Ninja
